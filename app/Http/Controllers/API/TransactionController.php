@@ -124,4 +124,27 @@ class TransactionController extends Controller
             'net'           => $income - $expense,
         ]);
     }
+
+    // 新增：根據年月篩選交易記錄
+    public function filterByMonth(Request $request)
+    {
+        if (!$request->user()) {
+            \Log::error('TransactionController@filterByMonth: User not authenticated.');
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $month = $request->query('month');  // 例如 "2025-02"
+        if (!$month) {
+            return response()->json(['error' => 'month parameter required'], 400);
+        }
+        $year = substr($month, 0, 4);
+        $mon  = substr($month, 5, 2);
+
+        $transactions = Transaction::where('user_id', $request->user()->id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $mon)
+            ->get();
+
+        return response()->json($transactions);
+    }
 }
